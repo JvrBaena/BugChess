@@ -1,0 +1,54 @@
+h1
+  | BugChess Game
+
+div#p1-container
+  div(class="insect spider-black draggable", data-token="bs1")
+  div(class="insect spider-black draggable", data-token="bs2")
+  div(class="insect queen-black draggable", data-token="bq")
+  div(class="insect grassh-black draggable", data-token="bgh1")
+  div(class="insect grassh-black draggable", data-token="bgh2")
+  div(class="insect grassh-black draggable", data-token="bgh3")
+  div(class="insect ant-black draggable", data-token="ba1")
+  div(class="insect ant-black draggable", data-token="ba2")
+  div(class="insect ant-black draggable", data-token="ba3")
+  div(class="insect scarab-black draggable", data-token="bsc1")
+  div(class="insect scarab-black draggable", data-token="bsc2")
+
+
+div#p2-container
+  div(class="insect spider-white draggable", data-token="ws1")
+  div(class="insect spider-white draggable", data-token="ws2")
+  div(class="insect queen-white draggable", data-token="wq")
+  div(class="insect grassh-white draggable", data-token="wgh1")
+  div(class="insect grassh-white draggable", data-token="wgh2")
+  div(class="insect grassh-white draggable", data-token="wgh3")
+  div(class="insect ant-white draggable", data-token="wa1")
+  div(class="insect ant-white draggable", data-token="wa2")
+  div(class="insect ant-white draggable", data-token="wa3")
+  div(class="insect scarab-white draggable", data-token="wsc1")
+  div(class="insect scarab-white draggable", data-token="wsc2")
+
+
+script(src="/javascripts/frameworks/jquery-ui-1.8.22.custom.min.js")
+script(src="/socket.io/socket.io.js")
+script
+  var socket = io.connect("http://localhost:3000");
+  socket.emit('join-room',{room: '#{room}'});
+  socket.on('move', function(data){
+    var el = $(".insect[data-token = " + data.token +"]");
+    el.css({top: el.position().top, left: el.position().left}).animate({top: data.top, left: data.left})
+  });
+  socket.on('request-current-pos', function(){
+    var positions = [];
+    $.each($('.insect'), function(i, el){
+      positions.push({token: $(el).attr("data-token"), top: $(el).position().top, left: $(el).position().left});
+    });
+    socket.emit('response-current-pos',{positions: positions});
+  });
+  $(function(){
+    $(".draggable").draggable({
+        stop: function(){
+          socket.emit("move",{top: $(this).position().top, left: $(this).position().left, token: $(this).attr("data-token")});
+        }
+      });
+  });
